@@ -1,0 +1,22 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esben.prettier-vscode",
+  "[javascript]": {
+    "editor.defaultFormatter": "esben.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esben.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esben.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esben.prettier-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esben.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esben.prettier-vscode"
+  }
+}
