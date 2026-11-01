@@ -10,6 +10,12 @@ export const carrierLookup = async (req, res) => {
       return res.status(400).json({ error: "Phone number is required" });
     }
 
+    if (!process.env.VERIPHONE_API_KEY) {
+      return res.status(503).json({
+        error: "Carrier lookup is not configured. Set VERIPHONE_API_KEY on the server.",
+      });
+    }
+
     const response = await axios.get("https://api.veriphone.io/v2/verify", {
       params: {
         phone: phone,

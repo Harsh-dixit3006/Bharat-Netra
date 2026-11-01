@@ -8,6 +8,12 @@ export const getIPHistory = async (req, res) => {
     return res.status(400).json({ error: "Domain is required" });
   }
 
+  if (!process.env.SECURITYTRAILS_API_KEY) {
+    return res.status(503).json({
+      error: "IP history is not configured. Set SECURITYTRAILS_API_KEY on the server.",
+    });
+  }
+
   try {
     const response = await axios.get(
       `https://api.securitytrails.com/v1/history/${domain}/dns/a`,
@@ -44,6 +50,12 @@ export const reverseIPLookup = async (req, res) => {
 
   if (!ip) {
     return res.status(400).json({ error: "IP address is required" });
+  }
+
+  if (!process.env.SECURITYTRAILS_API_KEY) {
+    return res.status(503).json({
+      error: "Reverse IP history is not configured. Set SECURITYTRAILS_API_KEY on the server.",
+    });
   }
 
   try {

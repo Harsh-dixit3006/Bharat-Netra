@@ -19,6 +19,13 @@ export const macAddressLookup = async (req, res) => {
     });
   }
 
+  if (!API_KEY) {
+    return res.status(503).json({
+      success: false,
+      message: "MAC address lookup is not configured. Set MAC_API_KEY on the server.",
+    });
+  }
+
   try {
     const response = await fetch(
       `https://api.macaddress.io/v1?apiKey=${API_KEY}&output=json&search=${macAddress}`,

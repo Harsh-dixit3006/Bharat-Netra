@@ -5,11 +5,9 @@ import { AppContext } from './AppContext.js';
 axios.defaults.withCredentials = true;
 
 export const AppContextProvider = ({ children }) => {
-  const backendUrl =
-    import.meta.env.VITE_API_URL ||
-    (import.meta.env.DEV
-      ? 'http://localhost:4000'
-      : 'https://bharat-netra-official.onrender.com');
+  const backendUrl = import.meta.env.DEV
+    ? import.meta.env.VITE_API_URL || 'http://localhost:4000'
+    : '';
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
@@ -52,6 +50,8 @@ export const AppContextProvider = ({ children }) => {
     setUser(null);
   };
 
+  const invalidateSession = () => setUser(null);
+
   const contextValue = {
     backendUrl,
     user,
@@ -59,6 +59,7 @@ export const AppContextProvider = ({ children }) => {
     login,
     register,
     logout,
+    invalidateSession,
   };
 
   return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;

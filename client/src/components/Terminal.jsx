@@ -37,30 +37,6 @@ const placeholders = {
   'MAC Address Lookup': 'Enter MAC address (e.g. 00:1A:2B:3C:4D:5E)...',
 };
 
-// Helper for formatting contacts in RDAP/WHOIS (kept from your original)
-function formatContact(entity) {
-  if (!entity) return null;
-  const emails = (entity.vcard_array || [])
-    .filter((v) => v.name === 'email')
-    .map((v) => v.values)
-    .flat();
-  const phones = (entity.vcard_array || [])
-    .filter((v) => v.name === 'tel')
-    .map((v) => v.values)
-    .flat();
-  const names = (entity.vcard_array || [])
-    .filter((v) => v.name === 'fn')
-    .map((v) => v.values)
-    .flat();
-
-  return [
-    `Name: ${names.join(', ') || 'N/A'}`,
-    `Email: ${emails.join(', ') || 'N/A'}`,
-    `Phone: ${phones.join(', ') || 'N/A'}`,
-    `Roles: ${(entity.roles || []).join(', ') || 'N/A'}`,
-  ].join('\n');
-}
-
 function summarizeMalwareData(data) {
   if (!data?.attributes) return 'No VirusTotal data.';
   const stats = data.attributes.last_analysis_stats || {};
@@ -127,7 +103,7 @@ ${res.whois.substring(0, 500)}${res.whois.length > 500 ? '...(truncated)' : ''}`
     if (res.virusTotal.raw?.data?.attributes?.last_analysis_results) {
       const dangerous = Object.entries(
         res.virusTotal.raw.data.attributes.last_analysis_results
-      ).filter(([_, v]) => v.category === 'malicious');
+      ).filter(([, v]) => v.category === 'malicious');
       if (dangerous.length > 0) {
         lines.push('Malicious virus engines: ' + dangerous.map(([k]) => k).join(', '));
       }
@@ -140,7 +116,7 @@ ${res.whois.substring(0, 500)}${res.whois.length > 500 ? '...(truncated)' : ''}`
 }
 
 const Terminal = () => {
-  const { backendUrl } = useContext(AppContext);
+  const { backendUrl, invalidateSession } = useContext(AppContext);
   const [selectedTool, setSelectedTool] = useState(null);
   const [history, setHistory] = useState([]);
   const [inputValue, setInputValue] = useState('');
@@ -195,7 +171,7 @@ const Terminal = () => {
 
     try {
       if (selectedTool === 'Email Header Analyzer') {
-        const res = await axios.post(`${backendUrl}/api/email/header-analyser`, {
+        const res = await axios.post(`${backendUrl}/api/email/analyse-header`, {
           rawHeader: command,
         });
         if (res.data) {
@@ -210,8 +186,7 @@ const Terminal = () => {
         setLoading(false);
         return;
       } else if (selectedTool === 'Reverse IP Lookup') {
-        // POST { ip: command } to /api/ip/reverse-ip-lookup
-        const res = await axios.post(`${backendUrl}/api/ip/reverse-ip-lookup`, { ip: command });
+        const res = await axios.post(`${backendUrl}/api/reverseip/reverse-ip-lookup`, { ip: command });
         if (res.data && res.data.ip) {
           setHistory((prev) => [...prev, displayIPReport(res.data)]);
         } else {
@@ -365,7 +340,12 @@ const Terminal = () => {
 
       setLoading(false);
     } catch (err) {
-      setHistory((prev) => [...prev, `❌ Error: ${err.response?.data?.error || err.message}`]);
+      if (err.response?.status === 401) {
+        setHistory((prev) => [...prev, '❌ Your session expired or was rejected. Please sign in again.']);
+        invalidateSession();
+      } else {
+        setHistory((prev) => [...prev, `❌ Error: ${err.response?.data?.error || err.message}`]);
+      }
       setLoading(false);
     }
   };
